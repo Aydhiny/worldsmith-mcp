@@ -1,0 +1,30 @@
+{
+  "name": "@worldsmith/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server exposing deterministic geometry validators (overlap, zone-bounds, jump reachability) for AI-generated Unity level layouts. Validates plain JSON before any engine is involved — a builder only ever consumes a layout this server has approved.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "worldsmith-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "node --test dist/test/*.test.js",
+    "pretest": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

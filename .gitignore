@@ -1,0 +1,25 @@
+# Node / TypeScript
+node_modules/
+dist/
+*.tsbuildinfo
+npm-debug.log*
+
+# Unity (if this package is ever tested inside a sample project alongside it)
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+*.csproj
+*.sln
+*.unitypackage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

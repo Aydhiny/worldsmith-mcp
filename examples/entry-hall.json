@@ -1,0 +1,36 @@
+{
+  "id": "entry-hall-example",
+  "spawn": { "x": 0, "y": 0.3, "z": 4 },
+  "movement": { "gravity": 20, "jumpHeight": 4, "runSpeed": 8, "maxRisePerStep": 2.8, "jumpsAvailable": 1 },
+  "zones": [
+    {
+      "id": "entry_hall",
+      "bounds": { "center": { "x": 0, "y": 4, "z": 15 }, "size": { "x": 16, "y": 10, "z": 32 } },
+      "placementIds": ["floor", "wallL", "wallR", "roof", "landing"]
+    }
+  ],
+  "placements": [
+    {
+      "id": "floor", "kind": "block", "name": "Entry_Floor",
+      "position": { "x": 0, "y": -0.5, "z": 15 }, "size": { "x": 14, "y": 1, "z": 30 },
+      "tags": ["floor"]
+    },
+    {
+      "id": "wallL", "kind": "block", "name": "Entry_WallL",
+      "position": { "x": -7.5, "y": 4, "z": 15 }, "size": { "x": 1, "y": 9, "z": 30 }
+    },
+    {
+      "id": "wallR", "kind": "block", "name": "Entry_WallR",
+      "position": { "x": 7.5, "y": 4, "z": 15 }, "size": { "x": 1, "y": 9, "z": 30 }
+    },
+    {
+      "id": "roof", "kind": "block", "name": "Entry_Roof",
+      "position": { "x": 0, "y": 8.5, "z": 15 }, "size": { "x": 15, "y": 1, "z": 30 }
+    },
+    {
+      "id": "landing", "kind": "block", "name": "Far_Landing",
+      "position": { "x": 0, "y": 3, "z": 20 }, "size": { "x": 10, "y": 1, "z": 10 },
+      "tags": ["floor"]
+    }
+  ]
+}
