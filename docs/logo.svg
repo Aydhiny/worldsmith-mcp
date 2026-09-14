@@ -1,0 +1,39 @@
+<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="face-top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="face-left" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="face-right" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0284c7"/>
+      <stop offset="1" stop-color="#075985"/>
+    </linearGradient>
+  </defs>
+
+  <!-- isometric cube: one solid placement, validated -->
+  <g>
+    <polygon points="120,26 206,74 120,122 34,74" fill="url(#face-top)"/>
+    <polygon points="34,74 120,122 120,210 34,162" fill="url(#face-left)"/>
+    <polygon points="206,74 120,122 120,210 206,162" fill="url(#face-right)"/>
+  </g>
+
+  <!-- a second, smaller cube offset cleanly beside it: two placements, no overlap -->
+  <g opacity="0.9">
+    <polygon points="120,122 148,138 120,154 92,138" fill="#e0f2fe" opacity="0.15"/>
+  </g>
+
+  <!-- the checkmark: validation passed -->
+  <path d="M 74 118 L 104 148 L 168 78"
+        fill="none" stroke="#f8fafc" stroke-width="16"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 74 118 L 104 148 L 168 78"
+        fill="none" stroke="#0c4a6e" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"
+        opacity="0.25" transform="translate(0,4)"/>
+  <path d="M 74 118 L 104 148 L 168 78"
+        fill="none" stroke="#facc15" stroke-width="7"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

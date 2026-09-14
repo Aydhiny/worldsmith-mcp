@@ -4,6 +4,9 @@ dist/
 *.tsbuildinfo
 npm-debug.log*
 
+# Generated
+ui/vendor/
+
 # Unity (if this package is ever tested inside a sample project alongside it)
 Library/
 Temp/

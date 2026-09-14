@@ -5,21 +5,27 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "worldsmith-mcp": "dist/index.js"
+    "worldsmith-mcp": "dist/index.js",
+    "worldsmith": "dist/cli.js"
   },
   "scripts": {
-    "build": "tsc -p .",
+    "build": "tsc -p . && npm run build:browser",
+    "build:browser": "esbuild src/browser.ts --bundle --format=esm --outfile=../ui/vendor/worldsmith-core.js",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
+    "cli": "tsx src/cli.ts",
+    "export-schema": "node dist/export-schema.js",
     "test": "node --test dist/test/*.test.js",
     "pretest": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "esbuild": "^0.28.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },

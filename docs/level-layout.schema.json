@@ -1,0 +1,242 @@
+{
+  "$ref": "#/definitions/LevelLayout",
+  "definitions": {
+    "LevelLayout": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "zones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "bounds": {
+                "type": "object",
+                "properties": {
+                  "center": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "z"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "size": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      },
+                      "z": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "z"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "center",
+                  "size"
+                ],
+                "additionalProperties": false
+              },
+              "placementIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "bounds",
+              "placementIds"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "placements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "block",
+                  "prop",
+                  "enemy",
+                  "collectible",
+                  "hazard",
+                  "checkpoint"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "position": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "z": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "additionalProperties": false
+              },
+              "rotationY": {
+                "type": "number"
+              },
+              "size": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "z": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "additionalProperties": false
+              },
+              "prefabRef": {
+                "type": "string"
+              },
+              "solid": {
+                "type": "boolean"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "groupId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "name",
+              "position",
+              "size"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "spawn": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "z": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "z"
+          ],
+          "additionalProperties": false
+        },
+        "movement": {
+          "type": "object",
+          "properties": {
+            "gravity": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "jumpHeight": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "runSpeed": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "maxRisePerStep": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "jumpsAvailable": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "gravity",
+            "jumpHeight",
+            "runSpeed",
+            "maxRisePerStep"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "zones",
+        "placements",
+        "spawn",
+        "movement"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

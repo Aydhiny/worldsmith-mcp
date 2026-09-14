@@ -5,6 +5,7 @@ import { checkOverlaps } from "../validators/overlap.js";
 import { checkBounds } from "../validators/bounds.js";
 import { checkReachability, maxHorizontalReach } from "../validators/reachability.js";
 import { validateLayout } from "../validate.js";
+import { suggestOverlapRepairs, applySuggestion } from "../validators/repair.js";
 
 const movement = { gravity: 20, jumpHeight: 4, runSpeed: 8, maxRisePerStep: 2.8 };
 
@@ -100,6 +101,25 @@ test("validateLayout: a clean layout passes with ok:true", () => {
   const layout: LevelLayout = { id: "t", zones: [], placements: [floor], spawn: { x: 0, y: 1, z: 0 }, movement };
   const report = validateLayout(layout);
   assert.equal(report.ok, true);
+});
+
+// --- repair suggestions --------------------------------------------------------------------
+
+test("repair: a prop embedded in a floor gets a suggestion that actually clears it", () => {
+  const floor = place("floor", 0, 0, 0, 20, 1, 20);
+  const prop = place("prop", 0, 0.2, 0, 3, 1, 3); // mostly buried in the floor
+
+  const layout: LevelLayout = { id: "t", zones: [], placements: [floor, prop], spawn: { x: 0, y: 0, z: 0 }, movement };
+  const findings = checkOverlaps(layout);
+  assert.equal(findings.length, 1);
+
+  const suggestions = suggestOverlapRepairs(layout, findings);
+  assert.equal(suggestions.length, 1);
+  assert.equal(suggestions[0].placementId, "prop"); // never moves the "block" geometry
+
+  const repaired = applySuggestion(layout, suggestions[0]);
+  const findingsAfter = checkOverlaps(repaired);
+  assert.equal(findingsAfter.length, 0, "the suggested delta should fully clear the overlap");
 });
 
 test("validateLayout: a structurally broken layout (dangling zone reference) fails fast", () => {

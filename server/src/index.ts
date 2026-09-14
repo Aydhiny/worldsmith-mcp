@@ -8,6 +8,7 @@ import { validateLayout } from "./validate.js";
 import { checkOverlaps } from "./validators/overlap.js";
 import { checkBounds } from "./validators/bounds.js";
 import { checkReachability, maxHorizontalReach } from "./validators/reachability.js";
+import { suggestOverlapRepairs } from "./validators/repair.js";
 
 const server = new McpServer({
   name: "worldsmith",
@@ -127,6 +128,30 @@ server.tool(
     return {
       content: [{ type: "text", text: `Max horizontal reach at dy=${dy}: ${reach.toFixed(2)}m` }],
     };
+  },
+);
+
+server.tool(
+  "suggest_repairs",
+  "For every current overlap in a LevelLayout, suggests the minimum-translation fix: move the " +
+    "non-geometry placement (prop/enemy/etc, never world 'block' geometry when the pair is " +
+    "mixed) along whichever axis has the shallowest penetration, just far enough to clear it. " +
+    "Returns suggestions, does NOT modify the layout — apply one, then re-run validate_layout, " +
+    "the same iterative loop a linter's autofix uses. Fixing one overlap can create a new one " +
+    "against a third object, so re-validate rather than applying every suggestion blind.",
+  { layout: LevelLayoutSchema },
+  async ({ layout }) => {
+    const typedLayout = layout as LevelLayout;
+    const findings = checkOverlaps(typedLayout);
+    if (findings.length === 0) {
+      return { content: [{ type: "text", text: "No overlaps — nothing to repair." }] };
+    }
+    const suggestions = suggestOverlapRepairs(typedLayout, findings);
+    const text = suggestions.map((s) =>
+      `${s.placementName} (${s.placementId}): move ${s.axis} by ` +
+      `${s.delta >= 0 ? "+" : ""}${s.delta.toFixed(2)}m — ${s.reason}`
+    ).join("\n");
+    return { content: [{ type: "text", text }] };
   },
 );
 
