@@ -7,6 +7,7 @@ import { checkReachability, maxHorizontalReach } from "../validators/reachabilit
 import { validateLayout } from "../validate.js";
 import { suggestOverlapRepairs, applySuggestion } from "../validators/repair.js";
 import { checkBoundaryContinuity } from "../validators/boundary.js";
+import { checkPlacementVariety } from "../validators/variety.js";
 
 const movement = { gravity: 20, jumpHeight: 4, runSpeed: 8, maxRisePerStep: 2.8 };
 
@@ -176,6 +177,53 @@ test("boundary: unrelated clutter with no \"boundary\" tag does not satisfy the 
   };
   const findings = checkBoundaryContinuity(layout);
   assert.ok(findings.length > 0, "untagged geometry must not accidentally close a boundary gap");
+});
+
+// --- placement variety: the "all of them are the same" bug ------------------------------
+
+test("variety: the same prefab at the same rotation, repeated, is flagged", () => {
+  const ridge: Placement[] = [];
+  for (let i = 0; i < 6; i++) {
+    ridge.push(place(`ridge${i}`, i * 10, 10, 0, 20, 20, 20, {
+      prefabRef: "Mountain_01", tags: ["boundary"],
+    }));
+  }
+  const layout: LevelLayout = { id: "t", zones: [], placements: ridge, spawn: { x: 0, y: 0, z: 0 }, movement };
+  const findings = checkPlacementVariety(layout);
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0].count, 6);
+});
+
+test("variety: rotating each copy differently clears the check on its own", () => {
+  const ridge: Placement[] = [];
+  for (let i = 0; i < 6; i++) {
+    ridge.push(place(`ridge${i}`, i * 10, 10, 0, 20, 20, 20, {
+      prefabRef: "Mountain_01", tags: ["boundary"], rotationY: i * 37,
+    }));
+  }
+  const layout: LevelLayout = { id: "t", zones: [], placements: ridge, spawn: { x: 0, y: 0, z: 0 }, movement };
+  assert.equal(checkPlacementVariety(layout).length, 0);
+});
+
+test("variety: mixing prefabs at the same rotation clears the check on its own", () => {
+  const ridge: Placement[] = [];
+  const kit = ["Mountain_01", "Mountain_02", "Rock_01"];
+  for (let i = 0; i < 6; i++) {
+    ridge.push(place(`ridge${i}`, i * 10, 10, 0, 20, 20, 20, {
+      prefabRef: kit[i % kit.length], tags: ["boundary"],
+    }));
+  }
+  const layout: LevelLayout = { id: "t", zones: [], placements: ridge, spawn: { x: 0, y: 0, z: 0 }, movement };
+  assert.equal(checkPlacementVariety(layout).length, 0);
+});
+
+test("variety: a small group under the threshold is not flagged", () => {
+  const ridge: Placement[] = [
+    place("r0", 0, 10, 0, 20, 20, 20, { prefabRef: "Mountain_01", tags: ["boundary"] }),
+    place("r1", 10, 10, 0, 20, 20, 20, { prefabRef: "Mountain_01", tags: ["boundary"] }),
+  ];
+  const layout: LevelLayout = { id: "t", zones: [], placements: ridge, spawn: { x: 0, y: 0, z: 0 }, movement };
+  assert.equal(checkPlacementVariety(layout).length, 0);
 });
 
 test("validateLayout: a structurally broken layout (dangling zone reference) fails fast", () => {

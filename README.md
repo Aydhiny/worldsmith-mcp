@@ -80,12 +80,20 @@ prefab reference), a spawn point, a movement profile. See [`server/src/schema.ts
   interior room or a deliberate cliff-edge vista has no "flanking ridge" concept); call
   `check_boundary_continuity` explicitly once a layout's outdoor zones are meant to read as one
   continuous place.
+- **Placement variety** ([`validators/variety.ts`](server/src/validators/variety.ts)) — checks
+  whether a same-tagged GROUP of placements (default tag `boundary`) actually varies, or is just
+  one prefab copy-pasted along a line. The boundary-continuity fix above passed every geometry
+  check and still looked wrong: a single mountain prefab at `Quaternion.identity`, repeated, reads
+  as a fence of identical objects rather than a ridge — in the reporting user's own words, "all of
+  them are the same, it looks horrible." Flags any group of 4+ same-tagged placements sharing both
+  the same `prefabRef` AND an ~identical `rotationY`; either a mixed prefab kit or per-copy rotation
+  variety alone is enough to clear it.
 
 Run the geometry checks together with the `validate_layout` MCP tool, or individually while
 iterating with `check_overlaps` / `check_zone_bounds` / `check_reachability` /
-`check_boundary_continuity`. `max_jump_reach` answers "how far CAN a jump go from here" while a
-layout is still being authored, instead of finding out after the fact that a climb was too tall
-for the horizontal gap chosen.
+`check_boundary_continuity` / `check_placement_variety`. `max_jump_reach` answers "how far CAN a
+jump go from here" while a layout is still being authored, instead of finding out after the fact
+that a climb was too tall for the horizontal gap chosen.
 
 **`suggest_repairs`** closes the loop that `validate_layout` opens. The established pattern for
 LLM-facing structured output (Pydantic AI, Guardrails AI, Instructor: validate, then feed the

@@ -10,6 +10,7 @@ import { checkBounds } from "./validators/bounds.js";
 import { checkReachability, maxHorizontalReach } from "./validators/reachability.js";
 import { suggestOverlapRepairs } from "./validators/repair.js";
 import { checkBoundaryContinuity } from "./validators/boundary.js";
+import { checkPlacementVariety } from "./validators/variety.js";
 
 const server = new McpServer({
   name: "worldsmith",
@@ -184,6 +185,39 @@ server.tool(
       : findings.map((f) =>
           `OPEN GAP zone "${f.zoneId}" — ${f.side} ${f.axis} edge unflanked near ${f.axis}-band ` +
           `centred at ${f.bandCentre.toFixed(1)}`
+        ).join("\n");
+    return { content: [{ type: "text", text }], isError: findings.length > 0 };
+  },
+);
+
+server.tool(
+  "check_placement_variety",
+  "Checks a group of same-tagged placements (default tag \"boundary\") for whether they are " +
+    "actually varied, or just the same prefab copy-pasted along a line. The failure this catches: " +
+    "a generator loop that places N copies of ONE prefab with rotationY left at its default reads " +
+    "as a fence of identical objects, not a ridge or a skyline — and none of the other checks " +
+    "(overlap, bounds, reachability, boundary continuity) can see it, because a fence of identical " +
+    "objects has no overlaps, stays in bounds, and closes every gap just fine. Found on a real " +
+    "world where a bank-ridge loop used one mountain prefab at Quaternion.identity every time; the " +
+    "reporting user's words were \"all of them are the same, it looks horrible.\" Flags any group " +
+    "of 4+ same-tagged placements sharing both the same prefabRef AND an ~identical rotationY — " +
+    "either axis of variation alone (a mixed prefab kit, or the same prefab rotated differently " +
+    "each time) is enough to clear it.",
+  {
+    layout: LevelLayoutSchema,
+    tag: z.string().optional().describe("Only placements carrying this tag are checked (default \"boundary\")."),
+    minGroupSize: z.number().int().positive().optional()
+      .describe("A group smaller than this is not flagged (default 4)."),
+    rotationEpsilonDeg: z.number().nonnegative().optional()
+      .describe("How close two rotationY values must be to count as \"the same\" (default 1 degree)."),
+  },
+  async ({ layout, tag, minGroupSize, rotationEpsilonDeg }) => {
+    const findings = checkPlacementVariety(layout as LevelLayout, { tag, minGroupSize, rotationEpsilonDeg });
+    const text = findings.length === 0
+      ? "No repetitive placement groups found."
+      : findings.map((f) =>
+          `REPETITIVE ${f.count}x "${f.prefabRef}" tagged "${f.tag}" all share the same rotation — ` +
+          `${f.placementIds.slice(0, 5).join(", ")}${f.placementIds.length > 5 ? ", ..." : ""}`
         ).join("\n");
     return { content: [{ type: "text", text }], isError: findings.length > 0 };
   },
