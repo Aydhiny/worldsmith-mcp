@@ -6,6 +6,7 @@ import { checkBounds } from "../validators/bounds.js";
 import { checkReachability, maxHorizontalReach } from "../validators/reachability.js";
 import { validateLayout } from "../validate.js";
 import { suggestOverlapRepairs, applySuggestion } from "../validators/repair.js";
+import { checkBoundaryContinuity } from "../validators/boundary.js";
 
 const movement = { gravity: 20, jumpHeight: 4, runSpeed: 8, maxRisePerStep: 2.8 };
 
@@ -120,6 +121,61 @@ test("repair: a prop embedded in a floor gets a suggestion that actually clears 
   const repaired = applySuggestion(layout, suggestions[0]);
   const findingsAfter = checkOverlaps(repaired);
   assert.equal(findingsAfter.length, 0, "the suggested delta should fully clear the overlap");
+});
+
+// --- boundary continuity: the "reads as a void" bug ---------------------------------------
+
+test("boundary: a zone flanked along its whole length reports no gaps", () => {
+  const floor = place("floor", 0, 0, 0, 40, 1, 100);
+  const ridges: Placement[] = [];
+  for (let z = -50; z <= 50; z += 20) {
+    ridges.push(place(`ridgeL${z}`, -35, 10, z, 10, 20, 15, { tags: ["boundary"] }));
+    ridges.push(place(`ridgeR${z}`, 35, 10, z, 10, 20, 15, { tags: ["boundary"] }));
+  }
+  const layout: LevelLayout = {
+    id: "t",
+    zones: [{ id: "valley", bounds: { center: { x: 0, y: 0, z: 0 }, size: { x: 40, y: 20, z: 100 } }, placementIds: [] }],
+    placements: [floor, ...ridges],
+    spawn: { x: 0, y: 0, z: 0 },
+    movement,
+  };
+  const findings = checkBoundaryContinuity(layout);
+  assert.equal(findings.length, 0);
+});
+
+test("boundary: ridges that stop halfway leave the back half of the zone flagged open", () => {
+  // The actual shape of the bug: bank ridges authored for the front of a valley and never
+  // extended to the back — every other check on this layout would still pass clean.
+  const floor = place("floor", 0, 0, 0, 40, 1, 100);
+  const ridges: Placement[] = [];
+  for (let z = -50; z <= 0; z += 20) {
+    ridges.push(place(`ridgeL${z}`, -35, 10, z, 10, 20, 15, { tags: ["boundary"] }));
+    ridges.push(place(`ridgeR${z}`, 35, 10, z, 10, 20, 15, { tags: ["boundary"] }));
+  }
+  const layout: LevelLayout = {
+    id: "t",
+    zones: [{ id: "valley", bounds: { center: { x: 0, y: 0, z: 0 }, size: { x: 40, y: 20, z: 100 } }, placementIds: [] }],
+    placements: [floor, ...ridges],
+    spawn: { x: 0, y: 0, z: 0 },
+    movement,
+  };
+  const findings = checkBoundaryContinuity(layout);
+  assert.ok(findings.length > 0);
+  assert.ok(findings.every((f) => f.bandCentre > 0), "only the un-ridged back half should be flagged");
+});
+
+test("boundary: unrelated clutter with no \"boundary\" tag does not satisfy the check", () => {
+  const floor = place("floor", 0, 0, 0, 40, 1, 100);
+  const clutter = place("rock", -36, 1, 0, 4, 2, 4); // right next to the edge, but untagged
+  const layout: LevelLayout = {
+    id: "t",
+    zones: [{ id: "valley", bounds: { center: { x: 0, y: 0, z: 0 }, size: { x: 40, y: 20, z: 100 } }, placementIds: [] }],
+    placements: [floor, clutter],
+    spawn: { x: 0, y: 0, z: 0 },
+    movement,
+  };
+  const findings = checkBoundaryContinuity(layout);
+  assert.ok(findings.length > 0, "untagged geometry must not accidentally close a boundary gap");
 });
 
 test("validateLayout: a structurally broken layout (dangling zone reference) fails fast", () => {

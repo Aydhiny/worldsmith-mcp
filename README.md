@@ -71,11 +71,21 @@ prefab reference), a spawn point, a movement profile. See [`server/src/schema.ts
   floods from spawn across every `floor`-tagged placement using real projectile-motion jump arcs
   computed from the layout's own `MovementProfile` (gravity, jump height, run speed), never a flat
   "gap size" constant, and reports which floors the flood never reached.
+- **Boundary continuity** ([`validators/boundary.ts`](server/src/validators/boundary.ts)) — checks
+  whether every outdoor zone is FLANKED along its whole length by `boundary`-tagged geometry
+  (ridges, cliff walls, a treeline), not just somewhere in it. Found on a real world where bank
+  ridges were authored for the first two zones of a five-zone route and then simply stopped — every
+  other check passed clean, and the far zones still read as floor pads floating in an empty void
+  the moment a camera pulled back. Not part of `validate_layout`'s hard-fail gate by default (an
+  interior room or a deliberate cliff-edge vista has no "flanking ridge" concept); call
+  `check_boundary_continuity` explicitly once a layout's outdoor zones are meant to read as one
+  continuous place.
 
-Run all three together with the `validate_layout` MCP tool, or individually while iterating with
-`check_overlaps` / `check_zone_bounds` / `check_reachability`. `max_jump_reach` answers "how far
-CAN a jump go from here" while a layout is still being authored, instead of finding out after the
-fact that a climb was too tall for the horizontal gap chosen.
+Run the geometry checks together with the `validate_layout` MCP tool, or individually while
+iterating with `check_overlaps` / `check_zone_bounds` / `check_reachability` /
+`check_boundary_continuity`. `max_jump_reach` answers "how far CAN a jump go from here" while a
+layout is still being authored, instead of finding out after the fact that a climb was too tall
+for the horizontal gap chosen.
 
 **`suggest_repairs`** closes the loop that `validate_layout` opens. The established pattern for
 LLM-facing structured output (Pydantic AI, Guardrails AI, Instructor: validate, then feed the

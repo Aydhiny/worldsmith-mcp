@@ -9,6 +9,7 @@ import { checkOverlaps } from "./validators/overlap.js";
 import { checkBounds } from "./validators/bounds.js";
 import { checkReachability, maxHorizontalReach } from "./validators/reachability.js";
 import { suggestOverlapRepairs } from "./validators/repair.js";
+import { checkBoundaryContinuity } from "./validators/boundary.js";
 
 const server = new McpServer({
   name: "worldsmith",
@@ -152,6 +153,39 @@ server.tool(
       `${s.delta >= 0 ? "+" : ""}${s.delta.toFixed(2)}m — ${s.reason}`
     ).join("\n");
     return { content: [{ type: "text", text }] };
+  },
+);
+
+server.tool(
+  "check_boundary_continuity",
+  "Checks whether every outdoor zone is actually FLANKED along its whole length, not just " +
+    "somewhere in it — tag flanking scenery (ridges, cliff walls, a treeline) with \"boundary\" " +
+    "for this to see it. The failure this catches: a zone can pass every other check (no " +
+    "overlaps, nothing out of bounds, everything reachable) and still read as a handful of " +
+    "floor pads floating in an empty void the moment a camera pulls back, because nothing was " +
+    "ever asked to close its edges. Found on a real world where bank ridges were authored for " +
+    "the first two zones of a five-zone route and then just stopped — every per-zone geometry " +
+    "check was clean and the far zones still looked unfinished from any distance. NOT part of " +
+    "validate_layout's hard-fail gate by default (an interior room or an intentional cliff-edge " +
+    "vista has no flanking-ridge concept) — call this explicitly once a layout's outdoor zones " +
+    "are meant to read as one continuous place.",
+  {
+    layout: LevelLayoutSchema,
+    maxGapMargin: z.number().positive().optional()
+      .describe("How far outward from a zone's edge flanking geometry may start and still " +
+                "count as closing that edge (default 40 world units)."),
+    bandSize: z.number().positive().optional()
+      .describe("Sample band width along each zone's long axis (default 20 world units)."),
+  },
+  async ({ layout, maxGapMargin, bandSize }) => {
+    const findings = checkBoundaryContinuity(layout as LevelLayout, { maxGapMargin, bandSize });
+    const text = findings.length === 0
+      ? "Every zone is flanked along its whole length — no open gaps."
+      : findings.map((f) =>
+          `OPEN GAP zone "${f.zoneId}" — ${f.side} ${f.axis} edge unflanked near ${f.axis}-band ` +
+          `centred at ${f.bandCentre.toFixed(1)}`
+        ).join("\n");
+    return { content: [{ type: "text", text }], isError: findings.length > 0 };
   },
 );
 
